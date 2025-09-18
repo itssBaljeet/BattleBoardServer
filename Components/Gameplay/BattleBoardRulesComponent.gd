@@ -406,7 +406,7 @@ func getChainTargets(fromCell: Vector3i, chainRange: int) -> Array[Vector3i]:
 func getValidPlacementCells(faction: int) -> Array[Vector3i]:
 	var cells: Array[Vector3i] = []
 	var rows: Array[int] = []
-	if faction == FactionComponent.Factions.players:
+	if faction == FactionComponent.Factions.player1:
 		rows = [board.height - 2, board.height - 1]
 	else:
 		rows = [0, 1]

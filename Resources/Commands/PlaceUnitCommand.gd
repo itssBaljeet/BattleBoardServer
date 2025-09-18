@@ -35,6 +35,16 @@ func execute(context: BattleBoardContext) -> void:
 		boardUnit.boardPositionComponent.setCurrentCell(cell)
 	context.boardState.setCellOccupancy(cell, true, boardUnit)
 	_placed = true
+	
+	
+	match faction:
+		FactionComponent.Factions.player1:
+			TurnBasedCoordinator.playerOnePlacementParty.remove_meteormyte(unit)
+		FactionComponent.Factions.player2:
+			TurnBasedCoordinator.playerTwoPlacementParty.remove_meteormyte(unit)
+	
+	TurnBasedCoordinator.checkPlacementComplete()
+	
 	context.emitSignal(&"UnitPlaced", {
 		"unit": unit,
 		"cell": cell,

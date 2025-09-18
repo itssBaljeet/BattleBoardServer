@@ -44,17 +44,14 @@ func _ready():
 				_right_eye_mat.albedo_texture = _open_eye
 				_blink_timer.start(randf_range(1.0, 8.0))
 	)
-	print("FUCKING STATE: ", blink)
 	_set_blink(true)
 
 
 func _set_blink(state: bool):
 	if blink == state:
-		print("Same state return")
 		return
 	blink = state
 	if blink:
-		print("Starting blinker timer!")
 		_blink_timer.start(0.2)
 	else:
 		print()

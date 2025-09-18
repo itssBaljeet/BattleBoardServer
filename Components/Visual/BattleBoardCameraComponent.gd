@@ -176,8 +176,6 @@ func _update_camera() -> void:
 			(board_size_z - 1 - _centre_tile_z) - z_stop_tiles)
 		var offset_x : float = diff_x * step_factor * tile_size
 		var offset_z : float = diff_z * step_factor * tile_size
-		#print(offset_x, offset_z)
-		#print(_centre_tile_x)
 		pitchRig.position = Vector3(                    # ← only the offset lives here
 			offset_x,
 			0.0,

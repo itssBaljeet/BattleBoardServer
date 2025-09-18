@@ -80,11 +80,12 @@ enum TurnBasedState { # TBD: Should this be renamed to "Phase"?
 	}
 
 ## Current Team
-@export_storage var currentTeam: FactionComponent.Factions = FactionComponent.Factions.players:
+@export_storage var currentTeam: FactionComponent.Factions = FactionComponent.Factions.player1:
 	set(newValue):
 		match newValue:
-			FactionComponent.Factions.players: print("Player 1's Turn")
-			FactionComponent.Factions.ai: print("Player 2's Turn")
+			FactionComponent.Factions.player1: print("Player 1's Turn")
+			FactionComponent.Factions.player2: print("Player 2's Turn")
+		NetworkBattleBoard.c_updateCurrentTeam(newValue)
 		currentTeam = newValue
 
 ## The number of the current ONGOING turn. The first turn is 1.
@@ -140,6 +141,9 @@ var isReadyToStartTurn: bool:
 			and is_zero_approx(stateTimer.time_left) \
 			and is_zero_approx(entityTimer.time_left)
 
+var playerOnePlacementParty: Party
+var playerTwoPlacementParty: Party
+
 #endregion
 
 
@@ -160,7 +164,7 @@ var battleBoardSelector: BattleBoardSelectorComponent3D:
 	get:
 		playerInsectors.clear()
 		for insector in turnBasedEntities:
-			if insector is BattleBoardUnitServerEntity and insector.factionComponent.factions == FactionComponent.Factions.players:
+			if insector is BattleBoardUnitServerEntity and insector.factionComponent.factions == FactionComponent.Factions.player1:
 				playerInsectors.append(insector)
 		return playerInsectors
 
@@ -170,14 +174,14 @@ var battleBoardSelector: BattleBoardSelectorComponent3D:
 		for insector in turnBasedEntities:
 			print("LOOKING FOR ENEMY UNIT...")
 			print(playerInsectors)
-			if insector is BattleBoardUnitServerEntity and insector.factionComponent.factions == FactionComponent.Factions.ai:
+			if insector is BattleBoardUnitServerEntity and insector.factionComponent.factions == FactionComponent.Factions.player2:
 				print(insector.factionComponent.factions)
 				enemyInsectors.append(insector)
 		return enemyInsectors
 
 @export_storage var currentTeamParty: Array[BattleBoardUnitServerEntity]:
 	get:
-		return playerInsectors if currentTeam == FactionComponent.Factions.players else enemyInsectors
+		return playerInsectors if currentTeam == FactionComponent.Factions.player1 else enemyInsectors
 
 # Track an active unit for single-unit turn processing
 var activeUnit: TurnBasedEntity = null
@@ -202,8 +206,8 @@ var recentEntityProcessed: TurnBasedEntity:
 var nextEntityIndex: int: ## Returns the next entity in the turn order, or the first entry if the current entity is the last one.
 	get: return currentEntityIndex + 1 if (currentEntityIndex + 1) < turnBasedEntities.size() else 0
 
-var _playerPlacementDone: bool = false
-var _opponentPlacementDone: bool = false
+var _playerOnePlacementDone: bool = false
+var _playerTwoPlacementDone: bool = false
 var _againstAI: bool = false
 
 var nextEntityToProcess: TurnBasedEntity:
@@ -304,7 +308,7 @@ func setAllUnitTurnFlagsFalse() -> void:
 
 ## Check if all units of a team (defaults to current team) have finished their moves and actions.
 func isTeamExhausted(team: int = currentTeam) -> bool:
-	var party: Array[BattleBoardUnitServerEntity] = playerInsectors if team == FactionComponent.Factions.players else enemyInsectors
+	var party: Array[BattleBoardUnitServerEntity] = playerInsectors if team == FactionComponent.Factions.player1 else enemyInsectors
 	for unit in party:
 		if not unit.stateComponent.isExhausted():
 			return false
@@ -314,7 +318,7 @@ func isTeamExhausted(team: int = currentTeam) -> bool:
 ## Get a list of units in a team that still have actions available (not both flags set).
 func getAvailableUnits(team: int = currentTeam) -> Array[TurnBasedEntity]:
 	var available: Array[TurnBasedEntity] = []
-	var party: Array[BattleBoardUnitServerEntity] = playerInsectors if team == FactionComponent.Factions.players else enemyInsectors
+	var party: Array[BattleBoardUnitServerEntity] = playerInsectors if team == FactionComponent.Factions.player1 else enemyInsectors
 	for unit in party:
 		if not unit.stateComponent.isExhausted():
 			available.append(unit)
@@ -343,7 +347,7 @@ func startTeamTurn() -> void:
 	currentTurn += 1
 	currentTurnState = TurnBasedState.turnBegin
 	self.set_process(true)  # Enable processing (for any debug draw or UI updates during turn)
-	if currentTeam & FactionComponent.Factions.players: willBeginPlayerTurn.emit()
+	if currentTeam & FactionComponent.Factions.player1: willBeginPlayerTurn.emit()
 	willBeginTurn.emit()  # Signal start of turn (could be used to update UI, etc.)
 	
 	for insector in currentTeamParty:
@@ -390,7 +394,7 @@ func endTeamTurn() -> void:
 	self.set_process(false)  # disable per-frame processing until next turn begins
 
 	# Automatically start the next team's turn (alternate the team)
-	currentTeam = FactionComponent.Factions.players if currentTeam == 6 else FactionComponent.Factions.ai
+	currentTeam = FactionComponent.Factions.player1 if currentTeam == FactionComponent.Factions.player2 else FactionComponent.Factions.player2
 	
 	if debugMode: printLog("Next team to act will be team %d" % currentTeam)
 	# Start the next turn after a short delay (if you want a pause between turns)
@@ -592,23 +596,16 @@ func showDebugInfo() -> void:
 #endregion
 
 func startPlacementPhase(party: Party, againstAI: bool = false, enemyParty: Party = null) -> void:
-	_playerPlacementDone = false
-	_opponentPlacementDone = false
+	_playerOnePlacementDone = false
+	_playerTwoPlacementDone = false
+	
+	playerOnePlacementParty = party.duplicate_deep()
+	playerTwoPlacementParty = enemyParty.duplicate_deep()
+	
 	_againstAI = againstAI
 	currentPhase = GamePhase.placement
-	phaseChanged.emit(currentPhase)
-	var boardEntity: BattleBoardEntity3D = null
-	for entity in turnBasedEntities:
-		if entity is BattleBoardEntity3D:
-			boardEntity = entity
-			break
-	if boardEntity:
-		var placementUI: BattleBoardPlacementUIComponent = boardEntity.components.get(&"BattleBoardPlacementUIComponent")
-		if placementUI:
-			placementUI.placementPhaseFinished.connect(_onPlacementFinished)
-			placementUI.beginPlacement(party)
-		if _againstAI and enemyParty:
-			_autoPlaceEnemy(boardEntity, enemyParty)
+	#phaseChanged.emit(currentPhase)
+	NetworkBattleBoard.c_emitPhaseChanged.rpc_id(0, NetworkBattleBoard.GamePhase.PLACEMENT)
 
 func _autoPlaceEnemy(boardEntity: BattleBoardEntity3D, enemies: Party) -> void:
 	var factory: BattleBoardCommandFactory = boardEntity.components.get(&"BattleBoardCommandFactory")
@@ -618,30 +615,36 @@ func _autoPlaceEnemy(boardEntity: BattleBoardEntity3D, enemies: Party) -> void:
 		var x := i % width
 		var z := i / width
 		var cell := Vector3i(x, 0, z)
-		factory.intentPlaceUnit(enemies.meteormytes[i], cell, FactionComponent.Factions.ai)
-	_opponentPlacementDone = true
-	_checkPlacementComplete()
+		factory.intentPlaceUnit(NetworkServer.playerTwo, enemies.meteormytes[i], cell, FactionComponent.Factions.ai)
+	_playerTwoPlacementDone = true
+	checkPlacementComplete()
+
+func _onPlacementFinished(playerId: int) -> void:
+	match playerId:
+		NetworkServer.playerOne:
+			_playerOnePlacementDone = true
+		NetworkServer.playerTwo:
+			_playerTwoPlacementDone = true
+	checkPlacementComplete()
 
 
-func remotePlacementFinished() -> void:
-	_opponentPlacementDone = true
-	_checkPlacementComplete()
-
-func _onPlacementFinished() -> void:
-	_playerPlacementDone = true
-	_checkPlacementComplete()
-
-func _checkPlacementComplete() -> void:
-	if _playerPlacementDone and _opponentPlacementDone:
+func checkPlacementComplete() -> void:
+	if playerOnePlacementParty.meteormytes.is_empty():
+		_playerOnePlacementDone = true
+	if playerTwoPlacementParty.meteormytes.is_empty():
+		_playerTwoPlacementDone = true
+	
+	if _playerOnePlacementDone and _playerTwoPlacementDone:
 		currentPhase = GamePhase.coinflip
-		phaseChanged.emit(currentPhase)
+		NetworkBattleBoard.c_emitPhaseChanged(NetworkBattleBoard.GamePhase.COINFLIP)
 		_startCoinflip()
 
 func _startCoinflip() -> void:
-	var result := FactionComponent.Factions.players if randi() % 2 == 0 else FactionComponent.Factions.ai
+	var result := FactionComponent.Factions.player1 if randi() % 2 == 0 else FactionComponent.Factions.player2
 	print("COINFLIP RESULT: ", result)
 	coinflipResolved.emit(result)
 	currentTeam = result
 	currentPhase = GamePhase.battle
 	phaseChanged.emit(currentPhase)
+	NetworkBattleBoard.c_emitPhaseChanged(NetworkBattleBoard.GamePhase.BATTLE)
 	startTurnProcess()

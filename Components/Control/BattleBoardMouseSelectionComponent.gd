@@ -83,7 +83,7 @@ func _setupHoverIndicator() -> void:
 	
 	# Create hover material
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.7, 0.7, 1.0, hoverHighlightAlpha)
+	mat.albedo_color = Color.BLUE_VIOLET
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	hoverMeshInstance.material_override = mat

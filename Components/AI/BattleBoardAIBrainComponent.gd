@@ -261,7 +261,7 @@ func _getAllEnemies(unit: BattleBoardUnitServerEntity) -> Array[BattleBoardUnitS
 
 func _createMoveCommand(unit: BattleBoardUnitServerEntity, toCell: Vector3i) -> bool:
 	print("MAKING MOVE COMMAND")
-	return commandFactory.intentMove(unit.boardPositionComponent.currentCellCoordinates, toCell)
+	return commandFactory.intentMove(1, unit.boardPositionComponent.currentCellCoordinates, toCell)
 
 func _createAttackCommand(unit: BattleBoardUnitServerEntity, targetCell: Vector3i) -> bool:
 	print("MAKING ATTACK COMMAND")

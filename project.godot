@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Insectron Comedot 4.5"
+config/name="Insectron Comedot 4.5 Server"
 config/name_localized={
 "ja_JP": "カムドット",
 "ja_Kana_JP": "カムドット"
@@ -43,6 +43,11 @@ GlobalSonic="*res://AutoLoad/GlobalSonic.tscn"
 TurnBasedCoordinator="*res://AutoLoad/TurnBasedCoordinator.tscn"
 Debug="*res://AutoLoad/Debug.tscn"
 GlobalUI="*res://AutoLoad/GlobalUI.tscn"
+NetworkServer="*res://AutoLoad/NetworkServer.gd"
+NetworkClock="*res://AutoLoad/NetworkClock.gd"
+NetworkEventBus="*res://AutoLoad/NetworkEventBus.gd"
+NetworkPlayerInput="*res://AutoLoad/NetworkPlayerInput.gd"
+NetworkBattleBoard="*res://AutoLoad/NetworkBattleBoard.gd"
 
 [debug]
 
@@ -61,6 +66,7 @@ window/subwindows/embed_subwindows=false
 
 [editor]
 
+run/main_run_args="--headless"
 script/templates_search_path="res://Templates/Scripts"
 naming/default_signal_callback_name="on{NodeName}_{signalName}"
 naming/default_signal_callback_to_self_name="on{SignalName}"

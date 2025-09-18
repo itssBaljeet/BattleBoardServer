@@ -28,8 +28,33 @@ signal commandEnqueued(command: BattleBoardCommand)
 signal commandValidationFailed(reason: String)
 #endregion
 
+func _ready() -> void:
+	NetworkPlayerInput.playerIntentReceived.connect(_playerIntentReceived)
+
+func _playerIntentReceived(playerId: int, intentType: NetworkPlayerInput.PlayerIntent, intent: Dictionary) -> void:
+	match intentType:
+		NetworkPlayerInput.PlayerIntent.MOVE:
+			var fromCell: Vector3i = intent.get("fromCell")
+			var toCell: Vector3i = intent.get("toCell")
+			
+			intentMove(playerId, fromCell, toCell)
+		NetworkPlayerInput.PlayerIntent.ATTACK:
+			pass
+		NetworkPlayerInput.PlayerIntent.SPECIAL_ATTACK:
+			pass
+		NetworkPlayerInput.PlayerIntent.PLACE_UNIT:
+			var meteormyte: Meteormyte = intent.get("meteormyte")
+			var cell: Vector3i = intent.get("cell")
+			var faction := FactionComponent.Factions.player1 if playerId == NetworkServer.playerOne else FactionComponent.Factions.player2
+			
+			intentPlaceUnit(playerId, meteormyte, cell, faction)
+		NetworkPlayerInput.PlayerIntent.WAIT:
+			pass
+		NetworkPlayerInput.PlayerIntent.END_TURN:
+			pass
+
 ## Creates and enqueues a move command from UI intent
-func intentMove(fromCell: Vector3i, toCell: Vector3i) -> bool:
+func intentMove(playerId: int, fromCell: Vector3i, toCell: Vector3i) -> bool:
 	var unit: BattleBoardUnitServerEntity = board.getInsectorOccupant(fromCell)
 	
 	if not unit:
@@ -38,6 +63,7 @@ func intentMove(fromCell: Vector3i, toCell: Vector3i) -> bool:
 	
 	var command := MoveCommand.new()
 	command.unit = unit
+	command.playerId = playerId
 	command.fromCell = unit.boardPositionComponent.currentCellCoordinates
 	command.toCell = toCell
 	
@@ -124,13 +150,14 @@ func intentEndTurn(team: int) -> bool:
 		return false
 
 ## Creates and enqueues a placement command during setup
-func intentPlaceUnit(meteormyte: Meteormyte, cell: Vector3i, faction: FactionComponent.Factions) -> bool:
+func intentPlaceUnit(playerId: int, meteormyte: Meteormyte, cell: Vector3i, faction: FactionComponent.Factions) -> bool:
 	if not meteormyte:
 		commandValidationFailed.emit("No unit selected")
 		return false
 	var command := PlaceUnitCommand.new()
 	command.unit = meteormyte
 	command.cell = cell
+	command.playerId = playerId
 	command.faction = faction
 	commandCreated.emit(command)
 

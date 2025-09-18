@@ -54,12 +54,22 @@ func execute(context: BattleBoardContext) -> void:
 	state.markMoved()
 	
 	# Emit domain event for presentation layer
-	context.emitSignal(&"UnitMoved", {
+	#context.emitSignal(&"UnitMoved", {
+		#"unit": unit,
+		#"from": fromCell,
+		#"to": toCell,
+		#"path": path
+	#})
+	
+	var data := {
 		"unit": unit,
 		"from": fromCell,
 		"to": toCell,
 		"path": path
-	})
+	}
+	
+	# Does what above did
+	NetworkPlayerInput.c_commandExecuted(playerId, NetworkPlayerInput.PlayerIntent.MOVE, data)
 	
 	commandCompleted.emit()
 

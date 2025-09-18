@@ -74,11 +74,11 @@ func _ready() -> void:
 	context.selector = selector
 	context.factory = factory
 	context.damageResolver = BattleDamageResolver.new()
-	print(selector)
-	print("COMMAND QUEUE READY!!!!!")
 	
 	# Subscribe to domain events and re-emit for UI
 	context.domainEvent.connect(_onDomainEvent)
+	
+	NetworkPlayerInput.undoCommandRequest.connect(undoLastCommand)
 
 ## Enqueues a command for processing
 ## Commands are validated immediately but executed asynchronously
@@ -148,6 +148,7 @@ func undoLastCommand() -> bool:
 	
 	lastCommand.undo(context)
 	commandUndone.emit(lastCommand)
+	NetworkPlayerInput.c_commandUndone.rpc_id(0)
 	return true
 
 ## Clears the queue without processing

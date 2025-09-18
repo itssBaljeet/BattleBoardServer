@@ -157,8 +157,6 @@ func applyInitialCoordinates() -> void:
 
 ## Set the tile coordinates corresponding to the parent Entity's [member Node2D.global_position].
 func updateCurrentTileCoordinates() -> Vector3i:
-	print(self.parentEntity)
-	print(self.parentEntity.get_parent())
 	self.currentCellCoordinates = battleBoard.local_to_map(battleBoard.to_local(self.parentEntity.global_position))
 
 	return currentCellCoordinates

@@ -25,6 +25,7 @@ signal commandFailed(reason: String)
 #region Parameters
 @export var commandName: String = "BaseCommand"
 @export var requiresAnimation: bool = true
+var playerId: int
 #endregion
 
 #region Abstract Methods

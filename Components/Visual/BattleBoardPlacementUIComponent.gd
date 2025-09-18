@@ -114,7 +114,7 @@ func placeCurrentUnit(cell: Vector3i) -> bool:
 	var unit := currentUnit()
 	if not unit:
 		return false
-	if factory.intentPlaceUnit(unit, cell, FactionComponent.Factions.players):
+	if factory.intentPlaceUnit(1, unit, cell, FactionComponent.Factions.player1):
 		placementCommitted.emit(unit, cell)
 		lastPlaced = unit
 		_removeUnitButton(unit)
@@ -135,7 +135,7 @@ func placeCurrentUnit(cell: Vector3i) -> bool:
 
 func undoLastPlacement() -> void:
 	if commandQueue.undoLastCommand():
-		highlighter.requestPlacementHighlights(FactionComponent.Factions.players)
+		highlighter.requestPlacementHighlights(FactionComponent.Factions.player1)
 		party.append(lastPlaced)
 
 func _showCurrent() -> void:

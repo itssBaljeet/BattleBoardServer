@@ -123,7 +123,7 @@ func _exitPlacementState() -> void:
 func _highlightPlacementCells() -> void:
 	if not highlighter:
 		return
-	highlighter.requestPlacementHighlights(FactionComponent.Factions.players)
+	highlighter.requestPlacementHighlights(FactionComponent.Factions.player1)
 
 func _clearPlacementHighlights() -> void:
 	if not highlighter:

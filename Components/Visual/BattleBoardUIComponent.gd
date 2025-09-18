@@ -245,7 +245,7 @@ func trySelectUnit(cell: Vector3i) -> bool:
 		return false
 	print("TRY SELECT UNIT UI COMP")
 	# Always try to open menu when selecting any cell during player's turn
-	if TurnBasedCoordinator.currentTeam != FactionComponent.Factions.players:
+	if TurnBasedCoordinator.currentTeam != FactionComponent.Factions.player1:
 		print("NOT PLAYER TURN NERD")
 		return false  # Don't open menu if not player's turn
 	
@@ -479,7 +479,7 @@ func _onCellSelected(cell: Vector3i) -> void:
 			trySelectUnit(cell)
 		UIState.moveSelect:
 			print("Moving")
-			factory.intentMove(activeUnit.boardPositionComponent.currentCellCoordinates, cell)
+			#factory.intentMove(activeUnit.boardPositionComponent.currentCellCoordinates, cell)
 		UIState.basicAttackTargetSelect:
 			print("basic Attack Target")
 			factory.intentAttack(activeUnit.boardPositionComponent.currentCellCoordinates, cell)
@@ -500,7 +500,7 @@ func _onCommandEnqueued(command: BattleBoardCommand) -> void:
 func _onCommandProcessed(command: BattleBoardCommand) -> void:
 	match command.commandName:
 		"Move":
-			if activeUnit and activeUnit.factionComponent.factions == FactionComponent.Factions.players:
+			#if activeUnit and activeUnit.factionComponent.factions == FactionComponent.Factions.players:
 				openUnitMenu(activeUnit, UIState.unitMenuPostMove)
 		"SpecialAttack":
 			closeUnitMenu()
@@ -621,13 +621,13 @@ func _updateButtonsVisibility(unit: BattleBoardUnitServerEntity) -> void:
 	
 	# Check if it's an enemy unit
 	print("THIS IS THE BOOOAARRRDD: ", board)
-	var isPlayerUnit := unit.factionComponent.factions == pow(2, FactionComponent.Factions.players - 1)
+	#var isPlayerUnit := unit.factionComponent.factions == pow(2, FactionComponent.Factions.players - 1)
 	
-	if not isPlayerUnit:
+	#if not isPlayerUnit:
 		# Enemy unit - show info and end turn only
-		print("ENEMY UNIT SELECTED")
-		infoButton.visible = true
-		return
+		#print("ENEMY UNIT SELECTED")
+		#infoButton.visible = true
+		#return
 	
 	# Player's unit - check state
 	var stateComp := unit.stateComponent
