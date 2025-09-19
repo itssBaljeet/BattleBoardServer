@@ -70,6 +70,14 @@ func canUndo() -> bool:
 func undo(context: BattleBoardContext) -> void:
 	context.boardState.setCellOccupancy(cell, false, null)
 	_placed = false
+	
+	var results := {
+		"unit": unit.toDict(),
+		"cell": cell
+	}
+	
+	NetworkPlayerInput.c_commandUndone.rpc_id(0, playerId, NetworkPlayerInput.PlayerIntent.PLACE_UNIT, results)
+	
 	context.emitSignal(&"UnitUnplaced", {
 		"unit": unit,
 		"cell": cell

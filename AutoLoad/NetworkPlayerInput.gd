@@ -47,7 +47,7 @@ func c_commandExecuted(_playerId: int, _commandType: PlayerIntent, _results: Dic
 	pass
 
 @rpc("reliable")
-func c_commandUndone() -> void: pass
+func c_commandUndone(_playerId: int, _commandType: PlayerIntent, _results: Dictionary) -> void: pass
 
 #endregion RPC FUNCTIONS
 ###############################################################################

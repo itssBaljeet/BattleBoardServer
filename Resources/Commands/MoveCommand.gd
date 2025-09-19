@@ -62,14 +62,13 @@ func execute(context: BattleBoardContext) -> void:
 	#})
 	
 	var data := {
-		"unit": unit,
-		"from": fromCell,
-		"to": toCell,
+		"fromCell": fromCell,
+		"toCell": toCell,
 		"path": path
 	}
 	
 	# Does what above did
-	NetworkPlayerInput.c_commandExecuted.rpc_id(playerId, playerId, NetworkPlayerInput.PlayerIntent.MOVE, data)
+	NetworkPlayerInput.c_commandExecuted.rpc_id(0, playerId, NetworkPlayerInput.PlayerIntent.MOVE, data)
 	
 	commandCompleted.emit()
 
@@ -82,10 +81,21 @@ func undo(context: BattleBoardContext) -> void:
 	# Restore board state
 	context.boardState.setCellOccupancy(toCell, false, null)
 	context.boardState.setCellOccupancy(fromCell, true, unit)
+	print(context.boardState.vBoardState)
 	
 	# Restore turn state
 	var state := unit.components.get(&"UnitTurnStateComponent") as UnitTurnStateComponent
 	state.undoMove()
+	
+	unit.boardPositionComponent.setDestinationCellCoordinates(fromCell)
+	
+	var results := {
+		"fromCell": toCell,
+		"toCell": fromCell,
+		"path": []
+	}
+	
+	NetworkPlayerInput.c_commandUndone.rpc_id(0, playerId, NetworkPlayerInput.PlayerIntent.MOVE, results)
 	
 	# Notify presentation layer
 	context.emitSignal(&"UnitMoved", {

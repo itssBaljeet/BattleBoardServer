@@ -148,7 +148,6 @@ func undoLastCommand() -> bool:
 	
 	lastCommand.undo(context)
 	commandUndone.emit(lastCommand)
-	NetworkPlayerInput.c_commandUndone.rpc_id(0)
 	return true
 
 ## Clears the queue without processing
