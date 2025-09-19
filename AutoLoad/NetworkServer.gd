@@ -79,6 +79,8 @@ func _peerConnected(connectedClientId: int) -> void:
 	# Bad sentinel check but whatever
 	if playerOne == -1:
 		playerOne = connectedClientId
+	else:
+		playerTwo = connectedClientId
 	
 	# If server finally full
 	if len(connectedClients) == maxPlayers:
@@ -110,10 +112,20 @@ func _peerDisconnected(disconnectedClientId: int) -> void:
 @rpc("any_peer", "reliable")
 func s_requestPlayerNumber() -> void:
 	var peer: int = multiplayer.get_remote_sender_id()
+	print("PRINTING PEER")
+	print(peer)
+	print(
+		"Player one: ",
+		playerOne,
+		"Player two: ",
+		playerTwo
+	)
 	match peer:
 		playerOne:
+			print("Updating player one number...")
 			c_updatePlayerNumber.rpc_id(peer, 1)
 		playerTwo:
+			print("Updating player two number...")
 			c_updatePlayerNumber.rpc_id(peer, 2)
 
 #endregion

@@ -15,9 +15,11 @@ func _init() -> void:
 
 func canExecute(context: BattleBoardContext) -> bool:
 	if not unit:
+		print("No unit provided")
 		commandFailed.emit("No unit provided")
 		return false
 	if not context.rules.isValidPlacement(cell, faction):
+		print("invalid placement option")
 		commandFailed.emit("Invalid placement")
 		return false
 	return true
@@ -44,6 +46,14 @@ func execute(context: BattleBoardContext) -> void:
 			TurnBasedCoordinator.playerTwoPlacementParty.remove_meteormyte(unit)
 	
 	TurnBasedCoordinator.checkPlacementComplete()
+	
+	var results := {
+		"unit": unit.toDict(),
+		"cell": cell,
+		"team": faction,
+	}
+	
+	NetworkPlayerInput.c_commandExecuted.rpc_id(0, NetworkPlayerInput.PlayerIntent.PLACE_UNIT, results)
 	
 	context.emitSignal(&"UnitPlaced", {
 		"unit": unit,

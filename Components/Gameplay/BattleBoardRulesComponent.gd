@@ -420,6 +420,7 @@ func getValidPlacementCells(faction: int) -> Array[Vector3i]:
 ## Validates if a cell can be used for initial placement
 func isValidPlacement(cell: Vector3i, faction: int) -> bool:
 	if not isInBounds(cell):
+		print("isValidPlacement: Not in bounds")
 		return false
 	return cell in getValidPlacementCells(faction)
 #endregion

@@ -43,7 +43,7 @@ func _playerIntentReceived(playerId: int, intentType: NetworkPlayerInput.PlayerI
 		NetworkPlayerInput.PlayerIntent.SPECIAL_ATTACK:
 			pass
 		NetworkPlayerInput.PlayerIntent.PLACE_UNIT:
-			var meteormyte: Meteormyte = intent.get("meteormyte")
+			var meteormyte: Meteormyte = Meteormyte.fromDict(intent.get("meteormyte"))
 			var cell: Vector3i = intent.get("cell")
 			var faction := FactionComponent.Factions.player1 if playerId == NetworkServer.playerOne else FactionComponent.Factions.player2
 			

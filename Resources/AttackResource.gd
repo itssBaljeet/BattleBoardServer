@@ -7,12 +7,12 @@ enum AttackType {
 	PHYSICAL,
 	SPECIAL,
 	MIXED
-}
+	}
 
 enum InteractionType {
 	MELEE,
 	RANGED
-}
+	}
 
 enum AOEType {
 	POINT,        # Single target
@@ -21,27 +21,27 @@ enum AOEType {
 	PIERCING,     # Line that continues past target
 	CONE,         # Cone spreading from attacker
 	CHAIN         # Jumps between targets
-}
+	}
 
 enum VFXOrientation {
 	ALONG_X,  # Effect plays along X axis
 	ALONG_Y,  # Effect plays along Y axis
 	ALONG_Z,  # Effect plays along Z axis
 	CUSTOM    # Use custom rotation offsets
-}
+	}
 
 enum VFXType {
 	BEAM,
 	PROJECTILE,
 	POINT,
 	AREA
-}
+	}
 
 enum Typing {
 	FIRE,
 	WATER,
 	GRASS,
-}
+	}
 
 @export_group("Basic Properties")
 @export var attackName: String = "Unknown Attack"
@@ -95,6 +95,9 @@ enum Typing {
 @export var drainsHealth: bool = false  # Heals attacker for damage dealt
 @export var ignoresDefense: bool = false  # True damage
 
+const SERIAL_VERSION := 1
+const RESOURCE_TYPE := "AttackResource"
+
 ## Get the actual range pattern (for highlighting)
 func getRangePattern() -> Array[Vector3i]:
 	if rangePattern:
@@ -105,6 +108,114 @@ func getRangePattern() -> Array[Vector3i]:
 func canReachCell(origin: Vector3i, target: Vector3i) -> bool:
 	if not rangePattern:
 		return origin.distance_to(target) <= 1  # Default melee range
-	
+
 	var offset := target - origin
 	return offset in rangePattern.offsets
+
+func toDict() -> Dictionary:
+
+	var status_paths: Array = []
+	for status in statusEffects:
+		status_paths.append(_resource_to_path(status))
+
+	return {
+		"version": SERIAL_VERSION,
+		"resource_type": RESOURCE_TYPE,
+		"attackName": attackName,
+		"description": description,
+		"icon": _resource_to_path(icon),
+		"baseDamage": baseDamage,
+		"accuracy": accuracy,
+		"damageType": int(damageType),
+		"attackType": int(attackType),
+		"interactionType": int(interactionType),
+		"rangePattern": _resource_to_path(rangePattern),
+		"requiresTarget": requiresTarget,
+		"canTargetEmpty": canTargetEmpty,
+		"hitsAllies": hitsAllies,
+		"aoeType": int(aoeType),
+		"aoePattern": _resource_to_path(aoePattern),
+		"chainCount": chainCount,
+		"chainRange": chainRange,
+		"statusEffects": status_paths,
+		"statusChance": statusChance,
+		"hazardResource": _resource_to_path(hazardResource),
+		"hazardChance": hazardChance,
+		"knockback": knockback,
+		"superKnockback": superKnockback,
+		"knockbackDistance": knockbackDistance,
+		"vfxScene": _resource_to_path(vfxScene),
+		"secondaryVFX": _resource_to_path(secondaryVFX),
+		"impactVFX": _resource_to_path(impactVFX),
+		"vfxType": int(vfxType),
+		"vfxScale": vfxScale,
+		"vfxHeight": vfxHeight,
+		"vfxOrientation": int(vfxOrientation),
+		"vfxRotationOffset": vfxRotationOffset,
+		"animationName": animationName,
+		"animationTime": animationTime,
+		"selfDamagePercent": selfDamagePercent,
+		"drainsHealth": drainsHealth,
+		"ignoresDefense": ignoresDefense
+	}
+
+static func fromDict(data: Dictionary) -> AttackResource:
+
+	var attack := AttackResource.new()
+	attack.attackName = data.get("attackName", attack.attackName)
+	attack.description = data.get("description", attack.description)
+	attack.icon = _load_resource(data.get("icon", ""))
+	attack.baseDamage = data.get("baseDamage", attack.baseDamage)
+	attack.accuracy = data.get("accuracy", attack.accuracy)
+	attack.damageType = data.get("damageType", int(attack.damageType)) as Typing
+	attack.attackType = data.get("attackType", int(attack.attackType)) as AttackType
+	attack.interactionType = data.get("interactionType", int(attack.interactionType)) as InteractionType
+	attack.rangePattern = _load_resource(data.get("rangePattern", ""))
+	attack.requiresTarget = data.get("requiresTarget", attack.requiresTarget)
+	attack.canTargetEmpty = data.get("canTargetEmpty", attack.canTargetEmpty)
+	attack.hitsAllies = data.get("hitsAllies", attack.hitsAllies)
+	attack.aoeType = data.get("aoeType", int(attack.aoeType)) as AOEType
+	attack.aoePattern = _load_resource(data.get("aoePattern", ""))
+	attack.chainCount = data.get("chainCount", attack.chainCount)
+	attack.chainRange = data.get("chainRange", attack.chainRange)
+
+	attack.statusEffects.clear()
+	for status_path in data.get("statusEffects", []):
+		if typeof(status_path) == TYPE_STRING and not status_path.is_empty():
+			var status: StatusEffectResource = _load_resource(status_path)
+			if status:
+				attack.statusEffects.append(status)
+
+	attack.statusChance = data.get("statusChance", attack.statusChance)
+	attack.hazardResource = _load_resource(data.get("hazardResource", ""))
+	attack.hazardChance = data.get("hazardChance", attack.hazardChance)
+	attack.knockback = data.get("knockback", attack.knockback)
+	attack.superKnockback = data.get("superKnockback", attack.superKnockback)
+	attack.knockbackDistance = data.get("knockbackDistance", attack.knockbackDistance)
+	attack.vfxScene = _load_resource(data.get("vfxScene", ""))
+	attack.secondaryVFX = _load_resource(data.get("secondaryVFX", ""))
+	attack.impactVFX = _load_resource(data.get("impactVFX", ""))
+	attack.vfxType = data.get("vfxType", int(attack.vfxType)) as VFXType
+	attack.vfxScale = data.get("vfxScale", attack.vfxScale)
+	attack.vfxHeight = data.get("vfxHeight", attack.vfxHeight)
+	attack.vfxOrientation = data.get("vfxOrientation", int(attack.vfxOrientation)) as VFXOrientation
+	attack.vfxRotationOffset = data.get("vfxRotationOffset", {})
+	attack.animationName = data.get("animationName", attack.animationName)
+	attack.animationTime = data.get("animationTime", attack.animationTime)
+	attack.selfDamagePercent = data.get("selfDamagePercent", attack.selfDamagePercent)
+	attack.drainsHealth = data.get("drainsHealth", attack.drainsHealth)
+	attack.ignoresDefense = data.get("ignoresDefense", attack.ignoresDefense)
+
+	return attack
+
+static func _resource_to_path(resource: Resource) -> String:
+
+	if resource and not resource.resource_path.is_empty():
+		return resource.resource_path
+	return ""
+
+static func _load_resource(path: String) -> Resource:
+
+	if typeof(path) != TYPE_STRING or path.is_empty():
+		return null
+	return ResourceLoader.load(path)
