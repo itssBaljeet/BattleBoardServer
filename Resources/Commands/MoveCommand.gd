@@ -69,7 +69,7 @@ func execute(context: BattleBoardContext) -> void:
 	}
 	
 	# Does what above did
-	NetworkPlayerInput.c_commandExecuted.rpc_id(playerId, NetworkPlayerInput.PlayerIntent.MOVE, data)
+	NetworkPlayerInput.c_commandExecuted.rpc_id(playerId, playerId, NetworkPlayerInput.PlayerIntent.MOVE, data)
 	
 	commandCompleted.emit()
 

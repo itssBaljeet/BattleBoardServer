@@ -87,7 +87,7 @@ func _peerConnected(connectedClientId: int) -> void:
 		print("Server: Game full, switching to lobby screen.")
 		print("Server: Starting placement phase")
 		var playerTeam: Party = preload("res://Game/Resources/TestParties/PlayerParty.tres")
-		var enemyTeam: Party = preload("res://Game/Resources/TestParties/EnemyParty.tres")
+		var enemyTeam: Party = preload("res://Game/Resources/TestParties/PlayerParty.tres")
 		
 		TurnBasedCoordinator.startPlacementPhase(playerTeam, false, enemyTeam)
 

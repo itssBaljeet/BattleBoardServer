@@ -43,7 +43,7 @@ func s_undoLastCommand() -> void:
 #region RPC PARITY
 
 @rpc("reliable")
-func c_commandExecuted(_commandType: PlayerIntent, _results: Dictionary) -> void:
+func c_commandExecuted(_playerId: int, _commandType: PlayerIntent, _results: Dictionary) -> void:
 	pass
 
 @rpc("reliable")

@@ -629,14 +629,17 @@ func _onPlacementFinished(playerId: int) -> void:
 
 
 func checkPlacementComplete() -> void:
+	print("CHECKING PLACEMENT COMPLETE")
 	if playerOnePlacementParty.meteormytes.is_empty():
 		_playerOnePlacementDone = true
 	if playerTwoPlacementParty.meteormytes.is_empty():
 		_playerTwoPlacementDone = true
-	
+	print(playerOnePlacementParty.meteormytes)
+	print(playerTwoPlacementParty.meteormytes)
 	if _playerOnePlacementDone and _playerTwoPlacementDone:
+		print("BOTH PLAYERS DONE; STARTING COINFLIP")
 		currentPhase = GamePhase.coinflip
-		NetworkBattleBoard.c_emitPhaseChanged(NetworkBattleBoard.GamePhase.COINFLIP)
+		NetworkBattleBoard.c_emitPhaseChanged.rpc_id(0, NetworkBattleBoard.GamePhase.COINFLIP)
 		_startCoinflip()
 
 func _startCoinflip() -> void:
@@ -646,5 +649,5 @@ func _startCoinflip() -> void:
 	currentTeam = result
 	currentPhase = GamePhase.battle
 	phaseChanged.emit(currentPhase)
-	NetworkBattleBoard.c_emitPhaseChanged(NetworkBattleBoard.GamePhase.BATTLE)
+	NetworkBattleBoard.c_emitPhaseChanged.rpc_id(0, NetworkBattleBoard.GamePhase.BATTLE)
 	startTurnProcess()

@@ -41,9 +41,11 @@ func execute(context: BattleBoardContext) -> void:
 	
 	match faction:
 		FactionComponent.Factions.player1:
-			TurnBasedCoordinator.playerOnePlacementParty.remove_meteormyte(unit)
+			print("!@# REMOVING METEORMYTE FROM TBC P1 PARTY")
+			TurnBasedCoordinator.playerOnePlacementParty.removeMeteormyteByNickname(unit.nickname)
 		FactionComponent.Factions.player2:
-			TurnBasedCoordinator.playerTwoPlacementParty.remove_meteormyte(unit)
+			print("!@# REMOVING METEORMYTE FROM TBC P2 PARTY")
+			TurnBasedCoordinator.playerTwoPlacementParty.removeMeteormyteByNickname(unit.nickname)
 	
 	TurnBasedCoordinator.checkPlacementComplete()
 	
@@ -53,7 +55,7 @@ func execute(context: BattleBoardContext) -> void:
 		"team": faction,
 	}
 	
-	NetworkPlayerInput.c_commandExecuted.rpc_id(0, NetworkPlayerInput.PlayerIntent.PLACE_UNIT, results)
+	NetworkPlayerInput.c_commandExecuted.rpc_id(0, playerId, NetworkPlayerInput.PlayerIntent.PLACE_UNIT, results)
 	
 	context.emitSignal(&"UnitPlaced", {
 		"unit": unit,
