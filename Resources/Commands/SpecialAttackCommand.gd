@@ -43,7 +43,10 @@ func execute(context: BattleBoardContext) -> void:
 	
 	# Mark unit as having acted
 	var state := attacker.components.get(&"UnitTurnStateComponent") as UnitTurnStateComponent
-	state.markActed()
+	state.markExhausted()
+	
+	if context.rules.isTeamExhausted(attacker.factionComponent.factions):
+			context.factory.intentEndTurn(TurnBasedCoordinator.currentTeam)
 	
 	# Clear highlights
 	context.highlighter.clearHighlights()
@@ -57,9 +60,9 @@ func execute(context: BattleBoardContext) -> void:
 	var wants_knockback := attackResource.superKnockback or attackResource.knockback
 	if wants_knockback:
 				for cell in affectedCells:
-						var potential := context.boardState.getOccupant(cell)
-						if potential and potential is BattleBoardUnitClientEntity:
-								knockbackResults[potential] = Vector3i.ZERO
+						var potential := context.boardState.getServerUnit(cell)
+						if potential and potential is BattleBoardUnitServerEntity:
+								knockbackResults[potential.boardPositionComponent.currentCellCoordinates] = Vector3i.ZERO
 
 	# Delegate to damage resolver
 	var damageResults := _resolveDamage(context, affectedCells)
@@ -84,6 +87,29 @@ func execute(context: BattleBoardContext) -> void:
 
 	# Emit single comprehensive event for VFX/presentation
 	print("Emitting special attack execution on context")
+	
+	var sortedTargets: Array = knockbackResults.keys()
+	sortedTargets.sort_custom(func(a: Vector3i, b: Vector3i) -> bool:
+		var distA: int = attacker.boardPositionComponent.currentCellCoordinates.distance_squared_to(
+			a)
+		var distB: int = attacker.boardPositionComponent.currentCellCoordinates.distance_squared_to(
+			b)
+		return distA > distB
+	)
+	
+	var results := {
+		"attackResource": attackResource.toDict(),
+		"fromCell": originCell,
+		"toCell": targetCell,
+		"hitCell": hitCell,
+		"affectedCells": affectedCells,
+		"damageResults": damageResults,
+		"knockbackResults": knockbackResults,
+		"sortedKnockbackResults": sortedTargets,
+	}
+	
+	NetworkPlayerInput.c_commandExecuted.rpc_id(0, playerId, NetworkPlayerInput.PlayerIntent.SPECIAL_ATTACK, results)
+	
 	context.emitSignal(&"SpecialAttackExecuted", {
 		"attacker": attacker,
 		"attackResource": attackResource,
@@ -265,19 +291,19 @@ func _applyKnockback(context: BattleBoardContext) -> void:
 	print("Applying knockback to ", knockbackResults.size(), " targets")
 
 	var sortedTargets: Array = knockbackResults.keys()
-	sortedTargets.sort_custom(func(a: BattleBoardUnitClientEntity, b: BattleBoardUnitClientEntity) -> bool:
+	sortedTargets.sort_custom(func(a: Vector3i, b: Vector3i) -> bool:
 		var distA: int = attacker.boardPositionComponent.currentCellCoordinates.distance_squared_to(
-			a.boardPositionComponent.currentCellCoordinates)
+			a)
 		var distB: int = attacker.boardPositionComponent.currentCellCoordinates.distance_squared_to(
-			b.boardPositionComponent.currentCellCoordinates)
+			b)
 		return distA > distB
 	)
 
 	for target in sortedTargets:
-		if not target is BattleBoardUnitClientEntity:
+		if not target:
 			continue
 
-		var unit := target as BattleBoardUnitClientEntity
+		var unit := context.boardState.getServerUnit(target)
 		var newPos := knockbackResults[target] as Vector3i
 		var oldPos: Vector3i = unit.boardPositionComponent.currentCellCoordinates
 

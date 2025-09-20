@@ -41,7 +41,11 @@ func _playerIntentReceived(playerId: int, intentType: NetworkPlayerInput.PlayerI
 		NetworkPlayerInput.PlayerIntent.ATTACK:
 			pass
 		NetworkPlayerInput.PlayerIntent.SPECIAL_ATTACK:
-			pass
+			var origin: Vector3i = intent.get("fromCell")
+			var target: Vector3i = intent.get("toCell")
+			var attackName: String = intent.get("attackName")
+			
+			intentSpecialAttack(origin, target, attackName)
 		NetworkPlayerInput.PlayerIntent.PLACE_UNIT:
 			var meteormyte: Meteormyte = Meteormyte.fromDict(intent.get("meteormyte"))
 			var cell: Vector3i = intent.get("cell")
@@ -97,17 +101,24 @@ func intentAttack(fromCell: Vector3i, targetCell: Vector3i) -> bool:
 	else:
 		return false
 
-func intentSpecialAttack(fromCell: Vector3i, targetCell: Vector3i) -> bool:
+func intentSpecialAttack(fromCell: Vector3i, targetCell: Vector3i, attackName: String) -> bool:
 	var attacker := board.getInsectorOccupant(fromCell)
 	
 	if not attacker:
 		commandValidationFailed.emit("No attacker selected")
 		return false
+	
+	var attackRes: AttackResource
+	for attack in attacker.attackComponent.getAvailableAttacks():
+		if attack.attackName == attackName:
+			attackRes = attack
+
+	
 	print("Fabricating special command")
 	var command := SpecialAttackCommand.new()
 	command.attacker = attacker
 	command.targetCell = targetCell
-	command.attackResource = UIComp.attackSelectionState.selectedAttack
+	command.attackResource = attackRes
 	
 	commandCreated.emit(command)
 	

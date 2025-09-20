@@ -485,7 +485,7 @@ func _onCellSelected(cell: Vector3i) -> void:
 			factory.intentAttack(activeUnit.boardPositionComponent.currentCellCoordinates, cell)
 		UIState.attackTargetSelect:
 			print("Attack target")
-			factory.intentSpecialAttack(activeUnit.boardPositionComponent.currentCellCoordinates, cell)
+			#factory.intentSpecialAttack(activeUnit.boardPositionComponent.currentCellCoordinates, cell)
 		
 
 func _onCommandEnqueued(command: BattleBoardCommand) -> void:
