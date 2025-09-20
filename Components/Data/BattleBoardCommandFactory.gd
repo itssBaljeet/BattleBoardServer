@@ -49,7 +49,9 @@ func _playerIntentReceived(playerId: int, intentType: NetworkPlayerInput.PlayerI
 			
 			intentPlaceUnit(playerId, meteormyte, cell, faction)
 		NetworkPlayerInput.PlayerIntent.WAIT:
-			pass
+			var cell: Vector3i = intent.get("cell")
+			print("~~~PLAYER WANTS TO WAIT UNIT AT THIS CELL: ", cell)
+			intentWait(cell)
 		NetworkPlayerInput.PlayerIntent.END_TURN:
 			pass
 
@@ -120,7 +122,6 @@ func intentSpecialAttack(fromCell: Vector3i, targetCell: Vector3i) -> bool:
 ## Creates and enqueues a wait command
 func intentWait(cell: Vector3i) -> bool:
 	var unit := board.getInsectorOccupant(cell)
-	print(cell)
 	if not unit:
 		commandValidationFailed.emit("No unit selected")
 		return false

@@ -58,13 +58,12 @@ func _init(meteormyte: Meteormyte, board, team: FactionComponent.Factions) -> vo
 	if meteormyte and meteormyte.species_data:
 		position.moveRange = meteormyte.species_data.baseMovePattern
 	self.add_child(position)
+	
 	var attack := BattleBoardUnitAttackComponent.new()
 	if meteormyte and meteormyte.species_data:
 		attack.attackRange = meteormyte.species_data.baseAttackPattern
 		if meteormyte.available_attacks.size() > 0:
-			attack.basicAttack = meteormyte.available_attacks[0]
-			if meteormyte.available_attacks.size() > 1:
-				attack.specialAttacks = meteormyte.available_attacks.slice(1)
+			attack.specialAttacks = meteormyte.available_attacks
 	self.add_child(attack)
 
 	var state := UnitTurnStateComponent.new()

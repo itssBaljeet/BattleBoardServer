@@ -88,6 +88,8 @@ func enqueue(command: BattleBoardCommand) -> bool:
 		return false
 	
 	# Pre-validate
+	print("VALIDATING IF COMMAND CAN EXECUTE SO I DONT EXECUTE MYSELF")
+	print(command.canExecute(context))
 	if not command.canExecute(context):
 		print("Sorry can't execute")
 		commandRejected.emit(command, "Validation failed")

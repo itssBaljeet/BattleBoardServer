@@ -85,7 +85,8 @@ enum TurnBasedState { # TBD: Should this be renamed to "Phase"?
 		match newValue:
 			FactionComponent.Factions.player1: print("Player 1's Turn")
 			FactionComponent.Factions.player2: print("Player 2's Turn")
-		NetworkBattleBoard.c_updateCurrentTeam(newValue)
+		print("EMITTING THE SIGNAL ")
+		NetworkBattleBoard.c_updateCurrentTeam.rpc_id(0, newValue)
 		currentTeam = newValue
 
 ## The number of the current ONGOING turn. The first turn is 1.
@@ -359,17 +360,17 @@ func startTeamTurn() -> void:
 	# Transition to the Turn Update phase for this team
 	currentTurnState = TurnBasedState.turnUpdate
 	willUpdateTurn.emit()
-
-	if currentTeam != FactionComponent.Factions.ai:
-		# Player-controlled team: wait for player to move/act with each unit manually.
-		# The turn will continue when the player finishes all actions and calls endTeamTurn().
-		if debugMode: printLog("Waiting for player input on team %d's units..." % currentTeam)
-		# Note: Do NOT automatically cycle to turnEnd yet. Player will manually trigger endTeamTurn().
-		return
-	else:
-		print("Ai turn")
-		## AI-controlled team: process all their units automatically
-		await _processAITurn()
+	print("Waiting for player input on team %d's units..." % currentTeam)
+	#if currentTeam != FactionComponent.Factions.ai:
+		## Player-controlled team: wait for player to move/act with each unit manually.
+		## The turn will continue when the player finishes all actions and calls endTeamTurn().
+		#if debugMode: printLog("Waiting for player input on team %d's units..." % currentTeam)
+		## Note: Do NOT automatically cycle to turnEnd yet. Player will manually trigger endTeamTurn().
+		#return
+	#else:
+		#print("Ai turn")
+		### AI-controlled team: process all their units automatically
+		#await _processAITurn()
 
 func endTeamTurn() -> void:
 	print("ATTEMPTING TO END TURN")
@@ -392,9 +393,11 @@ func endTeamTurn() -> void:
 	didEndTurn.emit()
 
 	self.set_process(false)  # disable per-frame processing until next turn begins
-
+	print("CURRENT TEAM BEFORE: ", currentTeam)
 	# Automatically start the next team's turn (alternate the team)
 	currentTeam = FactionComponent.Factions.player1 if currentTeam == FactionComponent.Factions.player2 else FactionComponent.Factions.player2
+	print("CURRENT TEAM AFTER: ", currentTeam)
+	#NetworkBattleBoard.c_updateCurrentTeam.rpc_id(0, currentTeam)
 	
 	if debugMode: printLog("Next team to act will be team %d" % currentTeam)
 	# Start the next turn after a short delay (if you want a pause between turns)

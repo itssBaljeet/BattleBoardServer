@@ -10,6 +10,8 @@ func _init() -> void:
 	requiresAnimation = false
 
 func canExecute(_context: BattleBoardContext) -> bool:
+	print("END TURN COMMAND CAN EXECUTE CHECK")
+	print(team, " ", TurnBasedCoordinator.currentTeam)
 	return team == TurnBasedCoordinator.currentTeam
 
 func execute(context: BattleBoardContext) -> void:
